@@ -45,7 +45,7 @@ input:focus {
 }
 
 .box {
-	padding-top: 70px;
+	padding-top: 30px;
 }
 .second_header {
 	margin-top: 70px;
@@ -60,7 +60,7 @@ input:focus {
 	padding-top: 10px;
 }
 .sizes, .condition {
-	margin-top: 40px;
+	margin-top: 30px;
 }
 
 /* Zip Field Styles */
@@ -91,10 +91,20 @@ input:focus {
 	margin-top: 10px;
 }
 
-
-
-
-
+/* Results Styles */
+.results_header {
+	margin-top: 50px;
+	border-bottom: 1px solid black;
+}
+.results_list {
+	display:table;
+	width: 100%;
+}
+.res {
+	display: table-cell;
+	width: 33%;
+	font-size: 1.2em;
+}
 
 
 
