@@ -1,14 +1,28 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200');
+
 *
 {
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	font-family: Helvetica, sans-serif;
+	font-family: Poppins, Helvetica, sans-serif;
+	font-weight: 200;
 }
 
 h1,h2,h3,h4,h5,h6
 {
-	font-family: Helvetica;
+	font-family: Poppins;
+}
+
+h1 {
+	margin-bottom: 20px;
+}
+
+h2 {
+	font-size: 1.5em;
+	border-bottom: solid 1px black;
+	width: 25%;
+	margin: auto;
 }
 
 body
@@ -16,16 +30,74 @@ body
 	background: url('../img/mtns.jpg') no-repeat;
 }
 
-header
-{
-	height: 200px;
-}
-
 main
 {
 	background-color: #fff;
 	margin:auto;
-	width: 1000px;
-	height: 500px;
+	width: 900px;
+	height: 100vh;
 	box-shadow: 0 5px 7px rgba(0,0,0,.4);
+	text-align: center;
 }
+
+input:focus {
+	outline: none;
+}
+
+.box {
+	padding-top: 70px;
+}
+.second_header {
+	margin-top: 70px;
+	margin-bottom: 0;
+}
+
+/* Select Field Styles */
+.radio {
+	display: inline-block;
+	margin: 0 20px;
+	font-size: 1.3em;
+	padding-top: 10px;
+}
+.sizes, .condition {
+	margin-top: 40px;
+}
+
+/* Zip Field Styles */
+.zip_field {
+	display:inline-block;
+	margin:auto;
+	padding: 10px;
+	font-size: 1.5em;
+}
+
+.enter_btn {
+	display: inline;
+	font-size: 1.5em;
+	margin-top: 15px;
+	padding: 12px;
+	color: white;
+	border: none;
+	background-color: deepskyblue;
+}
+.enter_btn:hover {
+	cursor: pointer;
+	background-color: dodgerblue;
+}
+
+.zip_error {
+	color: red;
+	font-size: 1.2em;
+	margin-top: 10px;
+}
+
+
+
+
+
+
+
+
+
+
+//
