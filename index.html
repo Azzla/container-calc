@@ -9,12 +9,48 @@
 		<title>Container Calculator</title>
 	</head>
 	<body>
-		<header class='input'>
-			
-		</header>
-		<main class='calc'>
-			
+		<main>
+			<div class='box'>
+				<h1>Select Container</h1>
+				<form class="select">
+					<div class='condition'>
+						<h2>Condition</h2>
+						<div class='radio'>
+							<input type='radio' name='condition' id='new' value="new">
+							<label for='new'>New</label>
+						</div>
+						<div class='radio'>
+							<input type='radio' name='condition' id='used' value="used">
+							<label for='used'>Used</label>
+						</div>
+					</div>
+					
+					<div class='sizes'>
+						<h2>Size/Type</h2>
+						<div class='radio'>
+							<input type='radio' name='size' id='20_stan' value="20_stan">
+							<label for='20_stan'>20' Standard</label>
+						</div>
+						<div class='radio'>
+							<input type='radio' name='size' id='40_stan' value="40_stan">
+							<label for='40_stan'>40' Standard</label>
+						</div>
+						<div class='radio'>
+							<input type='radio' name='size' id='40_high' value="40_high">
+							<label for='40_high'>40' High Cube</label>
+						</div>
+					</div>
+				</form>
+				<p class='select_error'></p>
+				<!-- Second Field -->
+				<h1 class='second_header'>Enter Delivery Zip Code</h1>
+				<form class="search">
+					<input type="number" class="zip_field" placeholder="Enter ZIP code..." required="required">
+					<input type="button" name="Enter" value="Enter" class="enter_btn">
+				</form>
+				<p class='zip_error'></p>
+			</div>
 		</main>
 	</body>
-	<script src='./js/script.js'></script>
+	<script src='./js/index.js' type='module'></script>
 </html>
