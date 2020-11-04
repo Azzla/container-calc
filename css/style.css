@@ -34,7 +34,7 @@ main
 {
 	background-color: #fff;
 	margin:auto;
-	width: 900px;
+	width: 1100px;
 	height: 100vh;
 	box-shadow: 0 5px 7px rgba(0,0,0,.4);
 	text-align: center;
@@ -93,7 +93,7 @@ input:focus {
 
 /* Results Styles */
 .results_header {
-	margin-top: 50px;
+	margin-top: 80px;
 	border-bottom: 1px solid black;
 }
 .results_list {
@@ -105,8 +105,14 @@ input:focus {
 	width: 33%;
 	font-size: 1.2em;
 }
-
-
+.name_1, .name_2, .name_3 {
+	text-transform: uppercase;
+}
+.price_1, .price_2, .price_3 {
+	color: deepskyblue;
+	font-weight: bold;
+	font-size: 1.5em;
+}
 
 
 
