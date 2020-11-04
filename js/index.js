@@ -7,6 +7,9 @@ const DOM = {
 
 //Price Data
 const priceData = {
+	stan_20: 2050,
+	stan_40: 2350,
+	hc_40: 2450,
 	initAmt: 1000,
 	margin: 550,
 	pricePerMi: 5.5
@@ -38,8 +41,8 @@ class Distance {
 	//Get Driving Distances Between Points in miles
 	async getDistances() {
 		try {
-			//const res = await fetch(`http://localhost:8010/proxy/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
-			const res = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
+			const res = await fetch(`http://localhost:8010/proxy/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
+			//const res = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
 			const data = await res.json();
 			
 			if (!data.destination_addresses[0])
@@ -75,7 +78,7 @@ DOM.enterBtn.addEventListener('click', async() => {
 		searchData.deliveryZip = dest;
 		
 		//determine three closest depots
-		const arrDepots = closestZip(dest);
+		const arrDepots = closestZip(parseInt(dest, 10));
 		searchData.closestZips = arrDepots.slice(0);
 		
 		//create distance object
@@ -112,6 +115,9 @@ DOM.enterBtn.addEventListener('click', async() => {
 //----------------------------------------------------
 
 
+
+
+
 ///////////////////////HELPER FUNCTIONS//////////////////////////////
 //Valid US Postal Regex Code//
 function isValidUSZip(sZip) {
@@ -144,7 +150,7 @@ function closestZip(sZip) {
 	let closest, index;
 	
 	//duplicate array of depot zips and convert to numbers for comparison
-	let depots = depotZips.map(el => parseInt(el));
+	let depots = depotZips.map(el => parseInt(el, 10));
 	
 	/////////////////////////////////////
 	//Do this three times for three zips
