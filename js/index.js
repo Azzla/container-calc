@@ -7,12 +7,12 @@ const DOM = {
 
 //Price Data
 const priceData = {
-	stan_20: 2050,
-	stan_40: 2350,
-	hc_40: 2450,
 	initAmt: 1000,
-	margin: 550,
-	pricePerMi: 5.5
+	markup: 550,
+	pricePerMi: 5.5,
+	salesTax: .0725,
+	creditFee: .03,
+	quantity: 1
 };
 
 //Current Search Data
@@ -20,7 +20,7 @@ let searchData = {
 	deliveryZip: '',
 	closestZips: [],
 	milesToDepots: [],
-	names: [],
+	cityNames: [],
 	prices: []
 };
 
@@ -29,41 +29,7 @@ const depotZips = [
 	'37128', '38654', '84032', '51106', '12203', '44406', '20782', '47933', '60062', '07026'
 ];
 
-//Distance Class
-class Distance {
-	constructor(origin, origin2, origin3, dest) {
-		this.origin = origin;
-		this.origin2 = origin2;
-		this.origin3 = origin3;
-		this.dest = dest;
-	}
-	
-	//Get Driving Distances Between Points in miles
-	async getDistances() {
-		try {
-			const res = await fetch(`http://localhost:8010/proxy/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
-			//const res = await fetch(`https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
-			const data = await res.json();
-			
-			if (!data.destination_addresses[0])
-			{
-				DOM.zipError.textContent = 'Invalid destination zip code.';
-			}
-			else
-			{
-				this.result1 = data.rows[0].elements[0].distance.text;
-				this.result2 = data.rows[1].elements[0].distance.text;
-				this.result3 = data.rows[2].elements[0].distance.text;
-				this.name1 = data.origin_addresses[0];
-				this.name2 = data.origin_addresses[1];
-				this.name3 = data.origin_addresses[2];
-			}
-		} catch (e) {
-			alert(e);
-		}
-	}
-} // ----------------------- Distance Class
-
+//Deprecated--//const res = await fetch(`http://localhost:8010/proxy/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
 
 //Enter Button Listener
 DOM.enterBtn.addEventListener('click', async() => {
@@ -81,31 +47,21 @@ DOM.enterBtn.addEventListener('click', async() => {
 		const arrDepots = closestZip(parseInt(dest, 10));
 		searchData.closestZips = arrDepots.slice(0);
 		
-		//create distance object
-		const dist = new Distance(...arrDepots, dest);
-		
-		//retrieve distances and store
-		await dist.getDistances();
-		searchData.milesToDepots = [dist.result1, dist.result2, dist.result3];
-		searchData.names = [dist.name1, dist.name2, dist.name3];
+		//call matrix service and store
+		const data = await matrix(...arrDepots, dest);
+		searchData.milesToDepots = [data.mile1, data.mile2, data.mile3];
+		//separate locations into simplified names
+		searchData.cityNames = formatNames([data.name1, data.name2, data.name3]);
 		
 		//separate miles into correctly formatted numbers
-		let miles = [];
-		searchData.milesToDepots.forEach(str => {
-			let arr = str.split(' ');
-			if (arr[0].includes(',')) {
-				miles.push(parseFloat(arr[0].replace(/,/g, '')));
-			} else {
-				miles.push(parseFloat(arr[0]));
-			}
-		});
+		const miles = formatMiles(searchData.milesToDepots);
 		
 		//Calc prices based on distances and store
 		const priceArr = calcPrices(miles);
 		searchData.prices = priceArr.slice(0);
 		
 		//Display resulting data in DOM
-		displayResults(searchData.milesToDepots, searchData.names, searchData.prices);
+		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.prices);
 	}
 	else
 	{
@@ -114,11 +70,62 @@ DOM.enterBtn.addEventListener('click', async() => {
 });
 //----------------------------------------------------
 
+//DISTANCE MATRIX SERVICE//
+async function matrix(origin1, origin2, origin3, dest) {
+	let service = new google.maps.DistanceMatrixService();
+	const data = await service.getDistanceMatrix(
+		{
+			origins: [origin1, origin2, origin3],
+			destinations: [dest],
+			travelMode: 'DRIVING',
+			unitSystem: google.maps.UnitSystem.IMPERIAL,
+		});
+	return parseData(data);
+}
 
+function parseData(data) {
+	const obj = {};
+	const origins = data.originAddresses;
 
-
+	obj.mile1 = data.rows[0].elements[0].distance.text;
+	obj.mile2 = data.rows[1].elements[0].distance.text;
+	obj.mile3 = data.rows[2].elements[0].distance.text;
+	obj.name1 = origins[0];
+	obj.name2 = origins[1];
+	obj.name3 = origins[2];
+	
+	return obj;
+}
 
 ///////////////////////HELPER FUNCTIONS//////////////////////////////
+//Mile Formatter//
+function formatMiles(array) {
+	let finalArr = []
+	array.forEach(str => {
+		let arr = str.split(' ');
+		if (arr[0].includes(',')) {
+			finalArr.push(parseFloat(arr[0].replace(/,/g, '')));
+		} else {
+			finalArr.push(parseFloat(arr[0]));
+		}
+	});
+	
+	return finalArr;
+}
+
+//City Name Formatter//
+function formatNames(array) {
+	let finalArr = [];
+	array.forEach(str => {
+		let arr = str.split(', ');
+		arr[1] = arr[1].replace(/[0-9]/g, '');
+		
+		finalArr.push(`${arr[0]}, ${arr[1]}`);
+	});
+	
+	return finalArr;
+}
+
 //Valid US Postal Regex Code//
 function isValidUSZip(sZip) {
   return /^\d{5}(-\d{4})?$/.test(sZip);
@@ -128,8 +135,22 @@ function isValidUSZip(sZip) {
 function calcPrices(arr) {
 	let finalArr = [];
 	
+	//Delivery Prices
 	for (let i=0; i<arr.length; i++) {
-		finalArr.push(priceData.initAmt + (arr[i]*priceData.pricePerMi) + priceData.margin);
+		let curr = (priceData.initAmt*priceData.quantity) + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
+		curr = curr + (curr * priceData.salesTax);
+		curr = curr + (curr * priceData.creditFee);
+		
+		finalArr.push(Math.round(curr * 100) / 100);
+	}
+	
+	//Pickup Prices
+	for (let i=0; i<arr.length; i++) {
+		let curr = (priceData.initAmt*priceData.quantity) + priceData.markup;
+		curr = curr + (curr * priceData.salesTax);
+		curr = curr + (curr * priceData.creditFee);
+		
+		finalArr.push(Math.round(curr * 100) / 100);
 	}
 	
 	return finalArr;
@@ -141,6 +162,7 @@ function displayResults(arrMile, arrName, arrPrice) {
 		document.querySelector(`.mile_${i}`).textContent = `${arrMile[i-1]}`;
 		document.querySelector(`.name_${i}`).textContent = `${arrName[i-1]}`;
 		document.querySelector(`.price_${i}`).textContent = `$${arrPrice[i-1]}`;
+		document.querySelector(`.pickup_${i}`).textContent = `$${arrPrice[(i-1)+3]}`;
 	}
 }
 
