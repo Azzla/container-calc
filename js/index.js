@@ -1,15 +1,17 @@
-//Element Selectors
+//DOM element Selectors
 const DOM = {
 	zipField: document.querySelector('.zip_field'),
 	enterBtn: document.querySelector('.enter_btn'),
 	zipError: document.querySelector('.zip_error')
 };
 
+//Import Depot Price Info by Zip
+import {containerCosts} from './costs.js';
+
 //Price Data
 const priceData = {
-	initAmt: 1000,
 	markup: 550,
-	pricePerMi: 5.5,
+	pricePerMi: 5,
 	salesTax: .0725,
 	creditFee: .03,
 	quantity: 1
@@ -26,10 +28,8 @@ let searchData = {
 
 //Depot Zip Locations
 const depotZips = [
-	'37128', '38654', '84032', '51106', '12203', '44406', '20782', '47933', '60062', '07026'
+	'37128', '38654', '84032', '51106', '12203', '44406', '20782'
 ];
-
-//Deprecated--//const res = await fetch(`http://localhost:8010/proxy/maps/api/distancematrix/json?units=imperial&origins=${this.origin}|${this.origin2}|${this.origin3}&destinations=${this.dest}&key=AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0`);
 
 //Enter Button Listener
 DOM.enterBtn.addEventListener('click', async() => {
@@ -39,6 +39,16 @@ DOM.enterBtn.addEventListener('click', async() => {
 	//Check if zip code is both present and valid
 	if (DOM.zipField.value && isValidUSZip(DOM.zipField.value))
 	{
+		//Esure size is selected
+		let size;
+		try {
+			size = Array.from(document.getElementsByName("size")).find(r => r.checked).value;
+		}
+		catch {
+			DOM.zipError.textContent = 'Please select a size/type.';
+			return;
+		}
+		
 		//store zip
 		const dest = DOM.zipField.value;
 		searchData.deliveryZip = dest;
@@ -56,20 +66,27 @@ DOM.enterBtn.addEventListener('click', async() => {
 		//separate miles into correctly formatted numbers
 		const miles = formatMiles(searchData.milesToDepots);
 		
-		//Calc prices based on distances and store
-		const priceArr = calcPrices(miles);
+		//Calc prices based on distances, zip codes, and size
+		const priceArr = calcPrices(miles, searchData.closestZips, size);
 		searchData.prices = priceArr.slice(0);
 		
+		//Get Depot Names
+		const ind1 = containerCosts.findIndex(x => x.zip === searchData.closestZips[0]);
+		const ind2 = containerCosts.findIndex(x => x.zip === searchData.closestZips[1]);
+		const ind3 = containerCosts.findIndex(x => x.zip === searchData.closestZips[2]);
+		searchData.depotNames = [containerCosts[ind1].depot, containerCosts[ind2].depot, containerCosts[ind3].depot];
+		
 		//Display resulting data in DOM
-		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.prices);
+		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.depotNames, searchData.prices);
 	}
 	else
 	{
 		DOM.zipError.textContent = 'Please enter a valid US zip code.';
 	}
 });
-//----------------------------------------------------
+//---------End of Event Listener--------------------//
 
+//////////////////////////////////////////////////////
 //DISTANCE MATRIX SERVICE//
 async function matrix(origin1, origin2, origin3, dest) {
 	let service = new google.maps.DistanceMatrixService();
@@ -131,13 +148,20 @@ function isValidUSZip(sZip) {
   return /^\d{5}(-\d{4})?$/.test(sZip);
 }
 
-//Calculate Prices Based on Distances//
-function calcPrices(arr) {
+//
+
+//Calculate Prices Based on Distances and Initial Prices//
+function calcPrices(arr, zips, size) {
 	let finalArr = [];
 	
 	//Delivery Prices
 	for (let i=0; i<arr.length; i++) {
-		let curr = (priceData.initAmt*priceData.quantity) + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
+		//Retrieve Index of Object Matching Desired Zip Code
+		const index = containerCosts.findIndex(x => x.zip === zips[i]);
+		//Get Appropriate Starting Price Based on Selected Radio Type
+		const initPrice = containerCosts[index].prices[size];
+		
+		let curr = (initPrice*priceData.quantity) + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
 		curr = curr + (curr * priceData.salesTax);
 		curr = curr + (curr * priceData.creditFee);
 		
@@ -146,7 +170,12 @@ function calcPrices(arr) {
 	
 	//Pickup Prices
 	for (let i=0; i<arr.length; i++) {
-		let curr = (priceData.initAmt*priceData.quantity) + priceData.markup;
+		//Retrieve Index of Object Matching Desired Zip Code
+		const index = containerCosts.findIndex(x => x.zip === zips[i]);
+		//Get Appropriate Starting Price Based on Selected Radio Type
+		const initPrice = containerCosts[index].prices[size];
+		
+		let curr = (initPrice*priceData.quantity) + priceData.markup;
 		curr = curr + (curr * priceData.salesTax);
 		curr = curr + (curr * priceData.creditFee);
 		
@@ -157,10 +186,11 @@ function calcPrices(arr) {
 }
 
 //Display Results//
-function displayResults(arrMile, arrName, arrPrice) {
+function displayResults(arrMile, arrName, arrDepot, arrPrice) {
 	for (let i=1; i<4; i++) {
 		document.querySelector(`.mile_${i}`).textContent = `${arrMile[i-1]}`;
 		document.querySelector(`.name_${i}`).textContent = `${arrName[i-1]}`;
+		document.querySelector(`.depot_${i}`).textContent = `${arrDepot[i-1]}`;
 		document.querySelector(`.price_${i}`).textContent = `$${arrPrice[i-1]}`;
 		document.querySelector(`.pickup_${i}`).textContent = `$${arrPrice[(i-1)+3]}`;
 	}
@@ -218,4 +248,7 @@ function formatZip(num) {
 
 
 
-//AIzaSyDx-GTgp58k6t5DcKe-nQlr--QVZf5rKJ0 -- DISTANCE MATRIX API KEY
+
+
+
+//
