@@ -19,7 +19,6 @@ const priceData = {
 
 //Current Search Data
 let searchData = {
-	deliveryZip: '',
 	closestZips: [],
 	milesToDepots: [],
 	cityNames: [],
@@ -51,11 +50,11 @@ DOM.enterBtn.addEventListener('click', async() => {
 		
 		//store zip
 		const dest = DOM.zipField.value;
-		searchData.deliveryZip = dest;
 		
 		//determine three closest depots
 		const arrDepots = closestZip(parseInt(dest, 10));
 		searchData.closestZips = arrDepots.slice(0);
+		const indices = getIndices(searchData.closestZips); // -- Retrieve indices
 		
 		//call matrix service and store
 		const data = await matrix(...arrDepots, dest);
@@ -71,10 +70,8 @@ DOM.enterBtn.addEventListener('click', async() => {
 		searchData.prices = priceArr.slice(0);
 		
 		//Get Depot Names
-		const ind1 = containerCosts.findIndex(x => x.zip === searchData.closestZips[0]);
-		const ind2 = containerCosts.findIndex(x => x.zip === searchData.closestZips[1]);
-		const ind3 = containerCosts.findIndex(x => x.zip === searchData.closestZips[2]);
-		searchData.depotNames = [containerCosts[ind1].depot, containerCosts[ind2].depot, containerCosts[ind3].depot];
+		searchData.depotNames = [containerCosts[indices[0]].depot,
+		containerCosts[indices[1]].depot, containerCosts[indices[2]].depot];
 		
 		//Display resulting data in DOM
 		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.depotNames, searchData.prices);
@@ -148,7 +145,16 @@ function isValidUSZip(sZip) {
   return /^\d{5}(-\d{4})?$/.test(sZip);
 }
 
-//
+//Return array of container cost indices
+function getIndices(zips) {
+	let arr = [];
+	
+	for (let i=0; i<zips.length; i++) {
+		arr.push(containerCosts.findIndex(x => x.zip === zips[i]));
+	}
+	
+	return arr;
+}
 
 //Calculate Prices Based on Distances and Initial Prices//
 function calcPrices(arr, zips, size) {
