@@ -25,10 +25,8 @@ let searchData = {
 	prices: []
 };
 
-//Depot Zip Locations
-const depotZips = [
-	'37128', '38654', '84032', '51106', '12203', '44406', '20782'
-];
+//Store Depot Zip Codes
+const depotZips = containerCosts.map(el => el['zip']);
 
 //Enter Button Listener
 DOM.enterBtn.addEventListener('click', async() => {
