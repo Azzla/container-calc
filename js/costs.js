@@ -1,32 +1,32 @@
 export const containerCosts =
 [
 	{zip: "30213", depot: "First Coast Depot", prices: {
-		stan_20: 1000,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
 	{zip: "30315", depot: "ConGlobal Industries", prices: {
-		stan_20: 1020,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
 	{zip: "21224", depot: "Picorp Inc", prices: {
-		stan_20: 1200,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
 	{zip: "02048", depot: "InTransit Container", prices: {
-		stan_20: 1400,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
 	{zip: "07105", depot: "Container Services of NJ", prices: {
-		stan_20: 1050,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
 	{zip: "29405", depot: "ConGlobal Industries", prices: {
-		stan_20: 1700,
+		stan_20: 1300,
 		stan_40: 2000,
 		hc_40: 2500
 	}},
