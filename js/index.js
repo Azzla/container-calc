@@ -12,9 +12,7 @@ import {containerCosts} from './costs.js';
 const priceData = {
 	markup: 550,
 	pricePerMi: 5,
-	salesTax: .0725,
-	creditFee: .03,
-	quantity: 1
+	creditFee: .03
 };
 
 //Current Search Data
@@ -22,7 +20,8 @@ let searchData = {
 	closestZips: [],
 	milesToDepots: [],
 	cityNames: [],
-	prices: []
+	prices: [],
+	creditFees: []
 };
 
 //Store Depot Zip Codes
@@ -36,13 +35,23 @@ DOM.enterBtn.addEventListener('click', async() => {
 	//Check if zip code is both present and valid
 	if (DOM.zipField.value && isValidUSZip(DOM.zipField.value))
 	{
+		//Esure condition is selected
+		let condition;
+		try {
+			condition = Array.from(document.getElementsByName("condition")).find(r => r.checked).value;
+		}
+		catch {
+			DOM.zipError.textContent = 'Please select the container condition.';
+			return;
+		}
+		
 		//Esure size is selected
 		let size;
 		try {
 			size = Array.from(document.getElementsByName("size")).find(r => r.checked).value;
 		}
 		catch {
-			DOM.zipError.textContent = 'Please select a size/type.';
+			DOM.zipError.textContent = 'Please select a container size/type.';
 			return;
 		}
 		
@@ -54,8 +63,14 @@ DOM.enterBtn.addEventListener('click', async() => {
 		searchData.closestZips = arrDepots.slice(0);
 		const indices = getIndices(searchData.closestZips); // -- Retrieve indices
 		
+		let data;
 		//call matrix service and store
-		const data = await matrix(...arrDepots, dest);
+		try {
+			data = await matrix(...arrDepots, dest);
+		} catch (e) {
+			DOM.zipError.textContent = 'Something went wrong with the entered zip code.'
+			return;
+		}
 		searchData.milesToDepots = [data.mile1, data.mile2, data.mile3];
 		//separate locations into simplified names
 		searchData.cityNames = formatNames([data.name1, data.name2, data.name3]);
@@ -63,16 +78,12 @@ DOM.enterBtn.addEventListener('click', async() => {
 		//separate miles into correctly formatted numbers
 		const miles = formatMiles(searchData.milesToDepots);
 		
-		//Calc prices based on distances, zip codes, and size
-		const priceArr = calcPrices(miles, searchData.closestZips, size);
+		//Calc prices based on distances, indices, size, and condition
+		const priceArr = calcPrices(miles, indices, size, condition);
 		searchData.prices = priceArr.slice(0);
 		
-		//Get Depot Names
-		searchData.depotNames = [containerCosts[indices[0]].depot,
-		containerCosts[indices[1]].depot, containerCosts[indices[2]].depot];
-		
 		//Display resulting data in DOM
-		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.depotNames, searchData.prices);
+		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.prices, searchData.creditFees);
 	}
 	else
 	{
@@ -98,7 +109,7 @@ async function matrix(origin1, origin2, origin3, dest) {
 function parseData(data) {
 	const obj = {};
 	const origins = data.originAddresses;
-
+	
 	obj.mile1 = data.rows[0].elements[0].distance.text;
 	obj.mile2 = data.rows[1].elements[0].distance.text;
 	obj.mile3 = data.rows[2].elements[0].distance.text;
@@ -145,28 +156,42 @@ function isValidUSZip(sZip) {
 
 //Return array of container cost indices
 function getIndices(zips) {
+	let index;
 	let arr = [];
+	let costs = containerCosts.slice(0);
 	
 	for (let i=0; i<zips.length; i++) {
-		arr.push(containerCosts.findIndex(x => x.zip === zips[i]));
+		index = costs.findIndex(x => x.zip === zips[i]);
+		
+		if (arr.includes(index)) {
+			if (arr.includes(index+1)) {
+				arr.push(index + 2);
+			}
+			else {
+				arr.push(index + 1);
+			}
+		}
+		else {
+			arr.push(index);
+		}
 	}
 	
 	return arr;
 }
 
 //Calculate Prices Based on Distances and Initial Prices//
-function calcPrices(arr, zips, size) {
+function calcPrices(arr, indices, size, condition) {
 	let finalArr = [];
 	
 	//Delivery Prices
 	for (let i=0; i<arr.length; i++) {
-		//Retrieve Index of Object Matching Desired Zip Code
-		const index = containerCosts.findIndex(x => x.zip === zips[i]);
 		//Get Appropriate Starting Price Based on Selected Radio Type
-		const initPrice = containerCosts[index].prices[size];
+		const initPrice = containerCosts[indices[i]].prices[condition][size];
 		
-		let curr = (initPrice*priceData.quantity) + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
-		curr = curr + (curr * priceData.salesTax);
+		let curr = initPrice + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
+		
+		//Store credit fee
+		searchData.creditFees.push(Math.round(curr * priceData.creditFee));
 		curr = curr + (curr * priceData.creditFee);
 		
 		finalArr.push(Math.round(curr * 100) / 100);
@@ -174,13 +199,13 @@ function calcPrices(arr, zips, size) {
 	
 	//Pickup Prices
 	for (let i=0; i<arr.length; i++) {
-		//Retrieve Index of Object Matching Desired Zip Code
-		const index = containerCosts.findIndex(x => x.zip === zips[i]);
 		//Get Appropriate Starting Price Based on Selected Radio Type
-		const initPrice = containerCosts[index].prices[size];
+		const initPrice = containerCosts[indices[i]].prices[condition][size];
 		
-		let curr = (initPrice*priceData.quantity) + priceData.markup;
-		curr = curr + (curr * priceData.salesTax);
+		let curr = initPrice + priceData.markup;
+		
+		//Store credit fee
+		searchData.creditFees.push(Math.round(curr * priceData.creditFee));
 		curr = curr + (curr * priceData.creditFee);
 		
 		finalArr.push(Math.round(curr * 100) / 100);
@@ -190,13 +215,14 @@ function calcPrices(arr, zips, size) {
 }
 
 //Display Results//
-function displayResults(arrMile, arrName, arrDepot, arrPrice) {
+function displayResults(arrMile, arrName, arrPrice, arrCredit) {
 	for (let i=1; i<4; i++) {
 		document.querySelector(`.mile_${i}`).textContent = `${arrMile[i-1]}`;
 		document.querySelector(`.name_${i}`).textContent = `${arrName[i-1]}`;
-		document.querySelector(`.depot_${i}`).textContent = `${arrDepot[i-1]}`;
 		document.querySelector(`.price_${i}`).textContent = `$${arrPrice[i-1]}`;
 		document.querySelector(`.pickup_${i}`).textContent = `$${arrPrice[(i-1)+3]}`;
+		document.querySelector(`.delcred_${i}`).textContent = `CC Fee: $${arrCredit[i-1]}`;
+		document.querySelector(`.picred_${i}`).textContent = `CC Fee: $${arrCredit[(i-1)+3]}`;
 	}
 }
 
