@@ -48,8 +48,16 @@ input:focus {
 	outline: none;
 }
 
+.logo {
+	position: absolute;
+	height: 150px;
+	margin-top: -20px;
+	left: 30px;
+}
+
 .box {
 	padding-top: 30px;
+	position: relative;
 }
 .second_header {
 	margin-top: 70px;
@@ -112,7 +120,7 @@ input:focus {
 .name_1, .name_2, .name_3 {
 	text-transform: uppercase;
 	font-weight: bold;
-	font-size: .8em;
+	font-size: .9em;
 	margin-top: 0;
 }
 .price_1, .price_2, .price_3, .pickup_1, .pickup_2, .pickup_3 {
@@ -128,6 +136,9 @@ input:focus {
 /* Media Queries */
 @media (max-width: 1100px)
 {
+	.logo {
+		height: 120px;
+	}
 	main
 	{
 		width: 100%;
@@ -138,11 +149,25 @@ input:focus {
 /* Mobile Devices */
 @media (max-width: 660px)
 {
+	main {
+		box-shadow: none;
+	}
+	body {
+		background: none;
+	}
+	
 	h1 {
 		margin-bottom: 0;
 	}
 	h2 {
 		width: 100%;
+	}
+	
+	.logo {
+		position:relative;
+		left: 0;
+		height: 180px;
+		margin-top: -30px;
 	}
 	
 	.enter_btn, .zip_field {
@@ -165,5 +190,6 @@ input:focus {
 	.res {
 		width: 100%;
 		border-bottom: 1px solid black;
+		padding: 10px 0;
 	}
 }
