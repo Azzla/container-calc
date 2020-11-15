@@ -21,7 +21,8 @@ let searchData = {
 	milesToDepots: [],
 	cityNames: [],
 	prices: [],
-	creditFees: []
+	creditFees: [],
+	inventory: []
 };
 
 //Store Depot Zip Codes
@@ -31,6 +32,8 @@ const depotZips = containerCosts.map(el => el['zip']);
 DOM.enterBtn.addEventListener('click', async() => {
 	//Clear error field
 	DOM.zipError.textContent = '';
+	//Clear Inventory fields
+	searchData.inventory = [];
 	
 	//Check if zip code is both present and valid
 	if (DOM.zipField.value && isValidUSZip(DOM.zipField.value))
@@ -83,7 +86,7 @@ DOM.enterBtn.addEventListener('click', async() => {
 		searchData.prices = priceArr.slice(0);
 		
 		//Display resulting data in DOM
-		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.prices, searchData.creditFees);
+		displayResults(searchData.milesToDepots, searchData.cityNames, searchData.prices, searchData.creditFees, searchData.inventory);
 	}
 	else
 	{
@@ -187,6 +190,10 @@ function calcPrices(arr, indices, size, condition) {
 	for (let i=0; i<arr.length; i++) {
 		//Get Appropriate Starting Price Based on Selected Radio Type
 		const initPrice = containerCosts[indices[i]].prices[condition][size];
+		//Set boolean values if inventory is <= 1
+		if (containerCosts[indices[i]].inventory[condition][size] <= 1) {
+			searchData.inventory[i] = true;
+		}
 		
 		let curr = initPrice + (arr[i]*priceData.pricePerMi + 100) + priceData.markup;
 		
@@ -215,8 +222,13 @@ function calcPrices(arr, indices, size, condition) {
 }
 
 //Display Results//
-function displayResults(arrMile, arrName, arrPrice, arrCredit) {
+function displayResults(arrMile, arrName, arrPrice, arrCredit, arrInv) {
 	for (let i=1; i<4; i++) {
+		if (arrInv[i-1] === true) {
+			document.querySelector(`.inv_notif_${i}`).style.display = "block";
+		} else {
+			document.querySelector(`.inv_notif_${i}`).style.display = "none";
+		}
 		document.querySelector(`.mile_${i}`).textContent = `${arrMile[i-1]}`;
 		document.querySelector(`.name_${i}`).textContent = `${arrName[i-1]}`;
 		document.querySelector(`.price_${i}`).textContent = `$${arrPrice[i-1]}`;

@@ -105,7 +105,7 @@ input:focus {
 
 /* Results Styles */
 .results_header {
-	margin-top: 80px;
+	margin-top: 60px;
 	border-bottom: 1px solid black;
 }
 .results_list {
@@ -123,6 +123,13 @@ input:focus {
 	font-size: .9em;
 	margin-top: 0;
 }
+.inv_notif_1, .inv_notif_2, .inv_notif_3 {
+	display: none;
+	font-size: .6em;
+	color: red;
+	font-weight: bold;
+}
+
 .price_1, .price_2, .price_3, .pickup_1, .pickup_2, .pickup_3 {
 	color: deepskyblue;
 	font-weight: bold;
