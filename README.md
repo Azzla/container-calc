@@ -1,4 +1,4 @@
 # container-calc
-Web software project intended to calculate prospective shipping container costs.
+Website software application project intended to calculate prospective shipping container costs.
 
-[Live Prototype](https://azzla.github.io/container-calc/)
+All sensitive production and server code is privately maintained in a separate repository due to company request.
